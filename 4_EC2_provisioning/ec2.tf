@@ -1,20 +1,22 @@
 resource "aws_key_pair" "my_key_pair" {
-  key_name   = "terra-key-ec2"
+  key_name   = "${var.env_prefix}-terra-key-ec2"
   public_key = file("terra-key-ec2.pub")
 }
 
-resource "aws_default_vpc" "my_default_vpc" {}
+data "aws_vpc" "default_vpc" {
+  default = true
+}
 
 resource "aws_security_group" "my_sg" {
-  name   = "my_security_group"
-  vpc_id = aws_default_vpc.my_default_vpc.id
+  name   = "${var.env_prefix}-security-group"
+  vpc_id = data.aws_vpc.default_vpc.id
 
   # SSH (restrict this in real-world 🚨)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.ssh_allowed_cidr]
   }
 
   # HTTP
@@ -42,7 +44,7 @@ resource "aws_security_group" "my_sg" {
   }
 
   tags = {
-    Name = "my_security_group"
+    Name = "${var.env_prefix}-security-group"
   }
 }
 
@@ -60,16 +62,16 @@ data "aws_ami" "amazon_linux" {
 
 resource "aws_instance" "my_ec2_instance" {
   ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = "t2.micro"
+  instance_type          = var.ec2_instance_type
   key_name               = aws_key_pair.my_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.my_sg.id]
 
   root_block_device {
-    volume_size = 15
-    volume_type = "gp3"
+    volume_size = var.ec2_root_storage_size
+    volume_type = var.ec2_root_storage_type
   }
 
   tags = {
-    Name = "my_ec2_instance"
+    Name = "${var.env_prefix}-ec2-instance"
   }
 }
