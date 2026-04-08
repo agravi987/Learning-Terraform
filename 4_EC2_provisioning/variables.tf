@@ -3,9 +3,9 @@ variable "ec2_instance_type" {
   default = "t2.micro"
 }
 
-variable "ec2_root_storage_size" {
+variable "ec2_default_root_storage_size" {
   type    = number
-  default = 15
+  default = 10
 }
 
 variable "ec2_root_storage_type" {
@@ -20,7 +20,7 @@ variable "ec2_region" {
 
 variable "env_prefix" {
   type    = string
-  default = "dev"
+  default = "prod"
 }
 
 variable "ssh_allowed_cidr" {
@@ -28,4 +28,5 @@ variable "ssh_allowed_cidr" {
   type        = string
   default     = "0.0.0.0/0"
 }
+
 

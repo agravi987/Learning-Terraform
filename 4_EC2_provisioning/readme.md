@@ -38,6 +38,27 @@ This section covers the practical, step-by-step process of using Terraform to pr
    - Exposes critical infrastructure details after applying the configuration.
    - Outputs include the instance's public IP (`ec2_public_ip`), private IP, public DNS, instance ID, AMI ID, security group IDs, and root block device details.
 
+## Advanced Terraform Concepts
+
+This project demonstrates several advanced Terraform configuration techniques:
+
+1. **The `for_each` Meta-Argument**
+   - Used in the `aws_instance` block to loop over a map of instance names and types (e.g., `web1-micro = t2.micro`).
+   - `for_each` is safer than `count` for identical resources because removing one item from the map only destroys that specific instance, rather than re-indexing and recreating others.
+   - Accesses the current item using `each.key` and `each.value`.
+
+2. **The `count` Meta-Argument (Alternative to `for_each`)**
+   - While `for_each` is used here, `count` can also be used to spin up multiple identical resources (e.g., `count = 3` creates three identical copies of the resource).
+   - Resources created with `count` are accessed as a list (e.g., `aws_instance.my_ec2_instance[0]`).
+
+3. **Explicit Dependencies (`depends_on`)**
+   - While Terraform automatically determines implicit dependencies based on resource references (like referencing `aws_security_group.my_sg.id` inside an EC2 instance), `depends_on` can be used to enforce a strict creation order.
+   - Enforces that the security group, key pair, and AMI data source are fully processed before the EC2 instance tries to create itself.
+
+4. **Conditional Expressions (Ternary Operator)**
+   - Used to apply dynamic logic directly within resource arguments: `condition ? true_val : false_val`.
+   - Used in the `root_block_device` to determine the volume size based on the environment: `volume_size = var.env_prefix == "dev" ? var.ec2_default_root_storage_size : var.ec2_default_root_storage_size + 10`. This keeps the configuration DRY while supporting multiple environments.
+
 ## Usage Guide
 - Generate the SSH key before running Terraform:
   ```bash
